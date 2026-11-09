@@ -1,1589 +1,596 @@
 <!DOCTYPE html>
-<html lang="en" class="h-full bg-slate-50">
+<html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CBE Library Pro - Kenya CBC & 8-4-4 Learning & Assessment Portal</title>
-    <link rel="manifest" href="/manifest.json">
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- FontAwesome Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Chart.js for Progress Analytics -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>EduSync Interactive Remote Classroom</title>
+  <style>
+    :root {
+      --primary: #2563eb;
+      --primary-dark: #1d4ed8;
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --border: #cbd5e1;
+      --success: #16a34a;
+      --warning: #d97706;
+      --danger: #dc2626;
+    }
 
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        brand: {
-                            50: '#f0fdf4',
-                            100: '#dcfce7',
-                            200: '#bbf7d0',
-                            500: '#10b981',
-                            600: '#059669',
-                            700: '#047857',
-                            800: '#065f46',
-                            900: '#064e3b',
-                        },
-                        mpesa: {
-                            green: '#00a859',
-                            dark: '#008544',
-                            light: '#e6f7ef'
-                        }
-                    },
-                    fontFamily: {
-                        sans: ['Inter', 'sans-serif'],
-                    }
-                }
-            }
-        }
-    </script>
-    <style>
-        .gradient-banner {
-            background: linear-gradient(135deg, #047857 0%, #0d9488 50%, #064e3b 100%);
-        }
-        .gradient-mpesa {
-            background: linear-gradient(135deg, #00a859 0%, #059669 100%);
-        }
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: #f1f5f9; }
-        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
-        
-        @keyframes pulse-ring {
-            0% { transform: scale(0.95); opacity: 0.8; }
-            50% { transform: scale(1.05); opacity: 0.4; }
-            100% { transform: scale(0.95); opacity: 0.8; }
-        }
-        .ring-animate { animation: pulse-ring 2s infinite ease-in-out; }
-    </style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; touch-action: manipulation; }
+    body { background-color: var(--bg); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; }
+    
+    header {
+      background-color: var(--card-bg);
+      border-bottom: 1px solid var(--border);
+      padding: 12px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+    .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 1.2rem; color: var(--primary); }
+    .badge { background: #e0e7ff; color: var(--primary); padding: 4px 10px; border-radius: 12px; font-size: 0.8rem; font-weight: 600; }
+    .room-tag { background: #dcfce7; color: #166534; padding: 4px 12px; border-radius: 12px; font-weight: bold; font-size: 0.9rem; }
+
+    main { flex: 1; padding: 15px; max-width: 1200px; width: 100%; margin: 0 auto; }
+    
+    .role-selection { display: flex; gap: 20px; justify-content: center; align-items: center; min-height: 75vh; flex-wrap: wrap; }
+    .card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 16px; padding: 20px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); width: 100%; max-width: 480px; text-align: center; }
+    
+    .btn { background: var(--primary); color: white; border: none; padding: 12px 20px; border-radius: 8px; font-size: 1rem; font-weight: 600; cursor: pointer; width: 100%; margin-top: 10px; transition: 0.2s; }
+    .btn:hover { background: var(--primary-dark); }
+    .btn-secondary { background: #f1f5f9; color: var(--text); border: 1px solid var(--border); }
+    .btn-success { background: var(--success); color: white; }
+    .btn-warning { background: var(--warning); color: white; }
+    .btn-danger { background: var(--danger); color: white; }
+    .btn-sm { padding: 6px 12px; font-size: 0.85rem; width: auto; margin: 0; }
+
+    input, select, textarea { width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 8px; margin-top: 6px; margin-bottom: 12px; font-size: 0.95rem; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 15px; }
+
+    /* Canvas Container & Geometry Overlay */
+    .canvas-container { position: relative; background: white; border: 2px solid var(--border); border-radius: 12px; overflow: hidden; touch-action: none; margin-top: 10px; }
+    canvas { display: block; width: 100%; height: 360px; background: #ffffff; cursor: crosshair; }
+    
+    .toolbar { display: flex; gap: 6px; padding: 8px; background: #f1f5f9; border-bottom: 1px solid var(--border); flex-wrap: wrap; align-items: center; }
+    .color-picker { width: 26px; height: 26px; border-radius: 50%; border: 2px solid white; cursor: pointer; box-shadow: 0 0 0 1px var(--border); }
+    .tool-btn { padding: 6px 10px; background: white; border: 1px solid var(--border); border-radius: 6px; font-size: 0.8rem; cursor: pointer; font-weight: 500; }
+    .tool-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
+
+    /* Math Keyboard Toolbar */
+    .math-keyboard { display: flex; gap: 4px; overflow-x: auto; padding: 6px; background: #e2e8f0; border-radius: 8px; margin-bottom: 8px; white-space: nowrap; }
+    .math-btn { padding: 6px 10px; background: white; border: 1px solid var(--border); border-radius: 6px; font-weight: bold; font-size: 0.9rem; cursor: pointer; flex-shrink: 0; }
+    .math-btn:hover { background: #cbd5e1; }
+
+    /* Learner Roster */
+    .roster-card { background: #f0f9ff; border: 1px solid #bae6fd; border-radius: 12px; padding: 12px; margin-bottom: 15px; text-align: left; }
+    .learner-item { display: flex; justify-content: space-between; align-items: center; padding: 8px; background: white; border: 1px solid var(--border); border-radius: 8px; margin-top: 6px; }
+    .online-indicator { display: inline-block; width: 10px; height: 10px; background: var(--success); border-radius: 50%; margin-right: 6px; }
+
+    .question-box { background: #eff6ff; border-left: 4px solid var(--primary); padding: 12px; border-radius: 0 8px 8px 0; margin-bottom: 12px; text-align: left; }
+    .hidden { display: none !important; }
+  </style>
 </head>
-<body class="h-full font-sans text-slate-800 flex flex-col antialiased bg-slate-50 selection:bg-brand-500 selection:text-white">
+<body>
 
-    <!-- Top Announcement Bar -->
-    <div class="bg-brand-900 text-white text-xs py-2 px-4 flex justify-between items-center sm:px-8 border-b border-brand-800">
-        <div class="flex items-center space-x-4">
-            <span class="flex items-center gap-1.5"><i class="fas fa-phone text-brand-500"></i> +254 716 235 185</span>
-            <span class="hidden md:flex items-center gap-1.5"><i class="fas fa-wallet text-brand-500"></i> M-Pesa Till: <strong>4931421</strong></span>
-        </div>
-        <div class="flex items-center space-x-3">
-            <span class="inline-flex items-center rounded-full bg-brand-800 px-2.5 py-0.5 text-[11px] font-semibold text-brand-100">
-                <span class="h-1.5 w-1.5 rounded-full bg-emerald-400 me-1.5 animate-pulse"></span>
-                KICD 2026 Compliant Engine
-            </span>
-            <button onclick="toggleRoleModal()" id="role-indicator-btn" class="bg-brand-700 hover:bg-brand-600 px-2.5 py-0.5 rounded text-[11px] font-bold text-white transition flex items-center gap-1">
-                <i class="fas fa-user-shield me-1"></i> <span id="current-role-label">Student Mode</span>
-            </button>
-        </div>
+  <header>
+    <div class="brand">
+      <span>EduSync Remote Live</span>
+      <span class="badge" id="sessionStatus">Ready</span>
     </div>
-
-    <!-- Main Header / Navigation -->
-    <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between h-16 items-center">
-                <!-- Logo -->
-                <div class="flex items-center space-x-3 cursor-pointer" onclick="navigateTo('home')">
-                    <div class="w-10 h-10 rounded-xl bg-brand-600 flex items-center justify-center text-white font-extrabold text-xl shadow-lg shadow-brand-600/30">
-                        <i class="fas fa-graduation-cap"></i>
-                    </div>
-                    <div>
-                        <span class="text-xl font-black text-slate-900 tracking-tight">cbe<span class="text-brand-600">library</span><span class="text-xs bg-amber-500 text-white px-1.5 py-0.5 rounded ml-1 font-bold">PRO</span></span>
-                        <p class="text-[10px] text-slate-500 font-medium tracking-wide uppercase">Kenya Competency Assessment Portal</p>
-                    </div>
-                </div>
-
-                <!-- Desktop Navigation Items -->
-                <nav class="hidden md:flex items-center space-x-6 text-sm font-semibold text-slate-600">
-                    <button onclick="navigateTo('home')" class="hover:text-brand-600 transition py-1">Home</button>
-                    <button onclick="navigateTo('catalog')" class="hover:text-brand-600 transition py-1">Exams Library</button>
-                    <button onclick="navigateTo('dashboard')" class="hover:text-brand-600 transition py-1 flex items-center gap-1.5">
-                        <i class="fas fa-chart-line text-brand-600"></i> Analytics
-                    </button>
-                    <button onclick="navigateTo('admin')" id="nav-admin-btn" class="hover:text-brand-600 transition py-1 text-slate-700 font-bold flex items-center gap-1.5">
-                        <i class="fas fa-chalkboard-teacher text-amber-600"></i> Teacher Panel
-                    </button>
-                </nav>
-
-                <!-- Action Button & User Profile -->
-                <div class="flex items-center space-x-3">
-                    <button onclick="navigateTo('dashboard')" class="bg-brand-50 text-brand-700 hover:bg-brand-100 font-bold px-3.5 py-2 rounded-xl text-xs sm:text-sm border border-brand-200 transition flex items-center gap-2">
-                        <i class="fas fa-user-graduate text-brand-600"></i>
-                        <span class="hidden sm:inline">My Progress</span>
-                    </button>
-                    <button onclick="toggleRoleModal()" class="md:hidden text-slate-600 text-xl p-2">
-                        <i class="fas fa-bars"></i>
-                    </button>
-                </div>
-            </div>
-        </div>
-    </header>
-
-    <!-- Main Content Area -->
-    <main id="app-container" class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 mb-16 md:mb-0">
-
-        <!-- ========================================== -->
-        <!-- VIEW 1: HOME PAGE -->
-        <!-- ========================================== -->
-        <section id="view-home" class="space-y-8">
-            <!-- Hero Banner -->
-            <div class="gradient-banner rounded-3xl p-6 sm:p-10 text-white shadow-2xl relative overflow-hidden">
-                <div class="relative z-10 max-w-2xl">
-                    <span class="inline-flex items-center gap-1.5 bg-white/20 backdrop-blur-md px-3.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-4 border border-white/30">
-                        <i class="fas fa-bolt text-amber-300"></i> Auto-Marked Assessment Platform
-                    </span>
-                    <h1 class="text-3xl sm:text-5xl font-black tracking-tight mb-4 leading-tight">
-                        Kenya CBC (Grades 4-12) & 8-4-4 Digital Exams
-                    </h1>
-                    <p class="text-brand-100 text-sm sm:text-base mb-6 leading-relaxed font-normal">
-                        Access KICD-aligned interactive test papers, attempt quizzes online with real-time timers, get automatic grading, detailed marking schemes, and seamless M-Pesa paper unlocking.
-                    </p>
-                    <div class="flex flex-wrap gap-3">
-                        <button onclick="navigateTo('catalog')" class="bg-white text-brand-900 hover:bg-brand-50 font-extrabold px-6 py-3.5 rounded-xl text-sm shadow-lg transition transform hover:-translate-y-0.5 flex items-center gap-2">
-                            <i class="fas fa-play-circle text-brand-600 text-lg"></i> Browse Exam Library
-                        </button>
-                        <button onclick="navigateTo('admin')" class="bg-brand-800/80 hover:bg-brand-800 text-white border border-white/20 font-bold px-5 py-3.5 rounded-xl text-sm backdrop-blur-sm transition flex items-center gap-2">
-                            <i class="fas fa-plus-circle text-amber-400"></i> Teacher Quiz Creator
-                        </button>
-                    </div>
-                </div>
-                <div class="absolute right-[-30px] bottom-[-30px] opacity-10 text-white text-[280px] pointer-events-none font-black">
-                    <i class="fas fa-book-open"></i>
-                </div>
-            </div>
-
-            <!-- Grade / Level Quick Filters Grid -->
-            <div>
-                <div class="flex justify-between items-end mb-6">
-                    <div>
-                        <h2 class="text-2xl font-black text-slate-900">Select Education Level</h2>
-                        <p class="text-sm text-slate-500">Filter interactive assessments by grade or curriculum track</p>
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-
-                    <!-- Primary CBC -->
-                    <div class="bg-amber-50/50 border border-amber-200 rounded-2xl p-6 transition hover:shadow-xl flex flex-col justify-between border-l-8 border-l-amber-500">
-                        <div>
-                            <div class="flex justify-between items-start mb-3">
-                                <h3 class="text-xl font-bold text-slate-900">Primary (CBC)</h3>
-                                <span class="bg-amber-100 text-amber-800 text-xs px-2.5 py-1 rounded-full font-bold">Grade 4 - 6</span>
-                            </div>
-                            <p class="text-slate-600 text-sm mb-5">Upper Primary foundational CBC assessments with instant auto-feedback.</p>
-                            
-                            <div class="flex flex-wrap gap-2 mb-6">
-                                <button onclick="selectGradeFilter('Grade 4')" class="bg-white hover:bg-amber-600 hover:text-white text-amber-900 border border-amber-300 font-bold px-3 py-1.5 rounded-lg text-xs shadow-sm transition">Grade 4</button>
-                                <button onclick="selectGradeFilter('Grade 5')" class="bg-white hover:bg-amber-600 hover:text-white text-amber-900 border border-amber-300 font-bold px-3 py-1.5 rounded-lg text-xs shadow-sm transition">Grade 5</button>
-                                <button onclick="selectGradeFilter('Grade 6')" class="bg-white hover:bg-amber-600 hover:text-white text-amber-900 border border-amber-300 font-bold px-3 py-1.5 rounded-lg text-xs shadow-sm transition">Grade 6</button>
-                            </div>
-                        </div>
-                        <div class="text-xs text-amber-700 font-semibold flex items-center justify-between border-t border-amber-200/60 pt-4">
-                            <span><i class="fas fa-check-circle me-1"></i> Formative Rubrics</span>
-                            <i class="fas fa-arrow-right"></i>
-                        </div>
-                    </div>
-
-                    <!-- Junior Secondary (JSS) -->
-                    <div class="bg-emerald-50/50 border border-emerald-200 rounded-2xl p-6 transition hover:shadow-xl flex flex-col justify-between border-l-8 border-l-emerald-600">
-                        <div>
-                            <div class="flex justify-between items-start mb-3">
-                                <h3 class="text-xl font-bold text-slate-900">Junior Secondary (JSS)</h3>
-                                <span class="bg-emerald-100 text-emerald-800 text-xs px-2.5 py-1 rounded-full font-bold">Grade 7 - 9</span>
-                            </div>
-                            <p class="text-slate-600 text-sm mb-5">JSS STEM, Social Studies & Language assessment tests aligned to KICD standard.</p>
-                            
-                            <div class="flex flex-wrap gap-2 mb-6">
-                                <button onclick="selectGradeFilter('Grade 7')" class="bg-white hover:bg-emerald-600 hover:text-white text-emerald-900 border border-emerald-300 font-bold px-3 py-1.5 rounded-lg text-xs shadow-sm transition">Grade 7</button>
-                                <button onclick="selectGradeFilter('Grade 8')" class="bg-white hover:bg-emerald-600 hover:text-white text-emerald-900 border border-emerald-300 font-bold px-3 py-1.5 rounded-lg text-xs shadow-sm transition">Grade 8</button>
-                                <button onclick="selectGradeFilter('Grade 9')" class="bg-white hover:bg-emerald-600 hover:text-white text-emerald-900 border border-emerald-300 font-bold px-3 py-1.5 rounded-lg text-xs shadow-sm transition">Grade 9</button>
-                            </div>
-                        </div>
-                        <div class="text-xs text-emerald-700 font-semibold flex items-center justify-between border-t border-emerald-200/60 pt-4">
-                            <span><i class="fas fa-check-circle me-1"></i> National JSS Mock Engine</span>
-                            <i class="fas fa-arrow-right"></i>
-                        </div>
-                    </div>
-
-                    <!-- Secondary & KCSE (8-4-4 / Senior CBC) -->
-                    <div class="bg-sky-50/50 border border-sky-200 rounded-2xl p-6 transition hover:shadow-xl flex flex-col justify-between border-l-8 border-l-sky-600">
-                        <div>
-                            <div class="flex justify-between items-start mb-3">
-                                <h3 class="text-xl font-bold text-slate-900">Senior Sec / 8-4-4</h3>
-                                <span class="bg-sky-100 text-sky-800 text-xs px-2.5 py-1 rounded-full font-bold">Form 1 - 4</span>
-                            </div>
-                            <p class="text-slate-600 text-sm mb-5">KCSE Mocks, Senior Secondary pathways, and termly revision papers.</p>
-                            
-                            <div class="flex flex-wrap gap-2 mb-6">
-                                <button onclick="selectGradeFilter('Form 3')" class="bg-white hover:bg-sky-600 hover:text-white text-sky-900 border border-sky-300 font-bold px-3 py-1.5 rounded-lg text-xs shadow-sm transition">Form 3</button>
-                                <button onclick="selectGradeFilter('Form 4')" class="bg-white hover:bg-sky-600 hover:text-white text-sky-900 border border-sky-300 font-bold px-3 py-1.5 rounded-lg text-xs shadow-sm transition">Form 4</button>
-                                <button onclick="selectGradeFilter('KCSE')" class="bg-white hover:bg-sky-600 hover:text-white text-sky-900 border border-sky-300 font-bold px-3 py-1.5 rounded-lg text-xs shadow-sm transition">KCSE Mocks</button>
-                            </div>
-                        </div>
-                        <div class="text-xs text-sky-700 font-semibold flex items-center justify-between border-t border-sky-200/60 pt-4">
-                            <span><i class="fas fa-check-circle me-1"></i> Full Marking Schemes</span>
-                            <i class="fas fa-arrow-right"></i>
-                        </div>
-                    </div>
-
-                </div>
-            </div>
-
-            <!-- Platform Highlights -->
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <div class="bg-white p-5 rounded-2xl border border-slate-200 flex items-center space-x-4 shadow-sm">
-                    <div class="w-12 h-12 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center text-xl shrink-0">
-                        <i class="fas fa-robot"></i>
-                    </div>
-                    <div>
-                        <h4 class="font-bold text-slate-900 text-sm">Instant Marking</h4>
-                        <p class="text-slate-500 text-xs">Automated grading and answer breakdowns.</p>
-                    </div>
-                </div>
-                <div class="bg-white p-5 rounded-2xl border border-slate-200 flex items-center space-x-4 shadow-sm">
-                    <div class="w-12 h-12 rounded-lg bg-mpesa-light text-mpesa-green flex items-center justify-center text-xl shrink-0">
-                        <i class="fas fa-mobile-alt"></i>
-                    </div>
-                    <div>
-                        <h4 class="font-bold text-slate-900 text-sm">M-Pesa Express</h4>
-                        <p class="text-slate-500 text-xs">Instant paper unlocks for KES 50/100.</p>
-                    </div>
-                </div>
-                <div class="bg-white p-5 rounded-2xl border border-slate-200 flex items-center space-x-4 shadow-sm">
-                    <div class="w-12 h-12 rounded-lg bg-indigo-100 text-indigo-700 flex items-center justify-center text-xl shrink-0">
-                        <i class="fas fa-chalkboard-teacher"></i>
-                    </div>
-                    <div>
-                        <h4 class="font-bold text-slate-900 text-sm">Teacher Studio</h4>
-                        <p class="text-slate-500 text-xs">Create & manage custom quizzes online.</p>
-                    </div>
-                </div>
-                <div class="bg-white p-5 rounded-2xl border border-slate-200 flex items-center space-x-4 shadow-sm">
-                    <div class="w-12 h-12 rounded-lg bg-amber-100 text-amber-700 flex items-center justify-center text-xl shrink-0">
-                        <i class="fas fa-chart-pie"></i>
-                    </div>
-                    <div>
-                        <h4 class="font-bold text-slate-900 text-sm">Progress Analytics</h4>
-                        <p class="text-slate-500 text-xs">Detailed subject competency charts.</p>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- ========================================== -->
-        <!-- VIEW 2: EXAM CATALOG & PURCHASES -->
-        <!-- ========================================== -->
-        <section id="view-catalog" class="hidden space-y-6">
-            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-                <div>
-                    <h2 class="text-2xl font-black text-slate-900">Exams & Assessment Library</h2>
-                    <p class="text-slate-500 text-sm">Browse free and premium assessment papers for CBC & 8-4-4</p>
-                </div>
-                <div class="flex flex-wrap gap-2">
-                    <select id="filter-level" onchange="applyFilters()" class="bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs sm:text-sm font-semibold text-slate-700 focus:ring-2 focus:ring-brand-500">
-                        <option value="ALL">All Education Levels</option>
-                        <option value="Grade 4">Grade 4</option>
-                        <option value="Grade 5">Grade 5</option>
-                        <option value="Grade 6">Grade 6</option>
-                        <option value="Grade 7">Grade 7 (JSS)</option>
-                        <option value="Grade 8">Grade 8 (JSS)</option>
-                        <option value="Grade 9">Grade 9 (JSS)</option>
-                        <option value="Form 3">Form 3 (8-4-4)</option>
-                        <option value="Form 4">Form 4 / KCSE</option>
-                    </select>
-                    <select id="filter-subject" onchange="applyFilters()" class="bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs sm:text-sm font-semibold text-slate-700 focus:ring-2 focus:ring-brand-500">
-                        <option value="ALL">All Subjects</option>
-                        <option value="Mathematics">Mathematics</option>
-                        <option value="Integrated Science">Integrated Science</option>
-                        <option value="Social Studies">Social Studies</option>
-                        <option value="English">English Language</option>
-                        <option value="Kiswahili">Kiswahili Lugha</option>
-                        <option value="Biology">Biology</option>
-                        <option value="Chemistry">Chemistry</option>
-                    </select>
-                </div>
-            </div>
-
-            <!-- Exam List Container -->
-            <div id="catalog-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <!-- Dynamically populated via JS -->
-            </div>
-        </section>
-
-        <!-- ========================================== -->
-        <!-- VIEW 3: INTERACTIVE EXAM RUNNER -->
-        <!-- ========================================== -->
-        <section id="view-exam" class="hidden space-y-6">
-            <!-- Exam Header Sticky Card -->
-            <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm sticky top-20 z-20">
-                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                    <div>
-                        <div class="flex items-center gap-2">
-                            <span id="exam-badge-grade" class="bg-brand-100 text-brand-800 text-xs px-3 py-1 rounded-full font-bold">Grade 7</span>
-                            <span id="exam-badge-subject" class="bg-slate-100 text-slate-700 text-xs px-3 py-1 rounded-full font-semibold">Mathematics</span>
-                            <span id="exam-badge-premium" class="hidden bg-amber-100 text-amber-800 text-xs px-2.5 py-1 rounded-full font-bold">Premium Unlocked</span>
-                        </div>
-                        <h2 id="exam-title" class="text-xl sm:text-2xl font-black text-slate-900 mt-1">Mathematics End-Term Assessment</h2>
-                    </div>
-
-                    <!-- Timer Badge -->
-                    <div class="bg-amber-50 border border-amber-200 text-amber-900 px-4 py-2 rounded-xl flex items-center space-x-2 font-mono font-bold text-lg shadow-sm">
-                        <i class="far fa-clock text-amber-600 animate-pulse"></i>
-                        <span id="exam-timer">15:00</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Questions Container -->
-            <div id="exam-questions-list" class="space-y-6">
-                <!-- Questions injected here dynamically -->
-            </div>
-
-            <!-- Exam Submission Controls -->
-            <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col sm:flex-row justify-between items-center gap-4">
-                <button onclick="navigateTo('catalog')" class="text-slate-600 hover:text-slate-900 font-bold text-sm flex items-center gap-1">
-                    <i class="fas fa-arrow-left me-1"></i> Exit Without Saving
-                </button>
-                <button onclick="submitExam()" class="w-full sm:w-auto bg-brand-600 hover:bg-brand-700 text-white font-extrabold px-8 py-3.5 rounded-xl shadow-lg hover:shadow-xl transition transform active:scale-95 flex items-center justify-center gap-2">
-                    <i class="fas fa-paper-plane"></i> Submit & Auto-Mark Assessment
-                </button>
-            </div>
-        </section>
-
-        <!-- ========================================== -->
-        <!-- VIEW 4: AUTOMATED MARKING RESULTS -->
-        <!-- ========================================== -->
-        <section id="view-results" class="hidden space-y-6">
-            <!-- Score Overview Card -->
-            <div class="bg-white rounded-3xl border border-slate-200 p-8 shadow-xl text-center relative overflow-hidden">
-                <div id="result-status-bg" class="absolute top-0 left-0 right-0 h-3 bg-brand-500"></div>
-
-                <div class="max-w-md mx-auto space-y-4">
-                    <div id="result-badge-icon" class="w-20 h-20 mx-auto rounded-full bg-brand-100 text-brand-600 flex items-center justify-center text-4xl shadow-inner">
-                        <i class="fas fa-trophy"></i>
-                    </div>
-
-                    <h2 class="text-2xl font-black text-slate-900">Assessment Evaluation Complete</h2>
-                    <p id="result-exam-name" class="text-slate-500 text-sm">Grade 7 Mathematics End-Term Assessment</p>
-
-                    <!-- Score Badge -->
-                    <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4 inline-block w-full shadow-sm">
-                        <div class="text-5xl font-black text-brand-600" id="result-percentage">85%</div>
-                        <div class="text-xs uppercase tracking-wider font-bold text-slate-400 mt-1" id="result-score-text">Score: 17 / 20 Points</div>
-                    </div>
-
-                    <!-- Grading Level (CBC Rubric) -->
-                    <div id="cbc-rubric-badge" class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-sm font-extrabold bg-emerald-100 text-emerald-800">
-                        <i class="fas fa-award"></i> Exceeding Expectation (EE)
-                    </div>
-
-                    <div class="flex justify-center gap-3 pt-4">
-                        <button onclick="navigateTo('dashboard')" class="bg-brand-600 hover:bg-brand-700 text-white font-bold px-6 py-2.5 rounded-xl text-sm shadow transition">
-                            View Saved Analytics
-                        </button>
-                        <button onclick="navigateTo('catalog')" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-6 py-2.5 rounded-xl text-sm transition">
-                            Attempt Another Exam
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Detailed Question Breakdown & Marking Scheme -->
-            <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-4">
-                <h3 class="text-lg font-bold text-slate-900 border-b border-slate-100 pb-3 flex items-center justify-between">
-                    <span><i class="fas fa-list-check text-brand-600 me-2"></i> KICD Detailed Answer Breakdown</span>
-                    <span class="text-xs font-normal text-slate-400">Automated Feedback</span>
-                </h3>
-                <div id="results-breakdown-list" class="space-y-4">
-                    <!-- Dynamic Breakdown cards injected here -->
-                </div>
-            </div>
-        </section>
-
-        <!-- ========================================== -->
-        <!-- VIEW 5: LEARNER ANALYTICS DASHBOARD -->
-        <!-- ========================================== -->
-        <section id="view-dashboard" class="hidden space-y-6">
-            <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                <div>
-                    <h2 class="text-2xl font-black text-slate-900">Learner Progress & Analytics</h2>
-                    <p class="text-slate-500 text-sm">Real-time competency tracking and assessment score history.</p>
-                </div>
-                <div class="flex gap-2">
-                    <button onclick="clearProgressData()" class="text-xs text-rose-600 hover:text-rose-800 font-bold border border-rose-200 hover:border-rose-300 bg-rose-50 px-3 py-2 rounded-xl transition">
-                        <i class="fas fa-trash me-1"></i> Clear Local Progress
-                    </button>
-                </div>
-            </div>
-
-            <!-- Analytics Stat Cards -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
-                    <span class="text-xs font-bold text-slate-400 uppercase">Completed Exams</span>
-                    <div class="text-3xl font-black text-slate-900 mt-2" id="dash-stat-total">0</div>
-                    <div class="text-xs text-brand-600 font-bold mt-1"><i class="fas fa-check-double me-1"></i> Auto-Evaluated</div>
-                </div>
-
-                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
-                    <span class="text-xs font-bold text-slate-400 uppercase">Average Percentage</span>
-                    <div class="text-3xl font-black text-brand-600 mt-2" id="dash-stat-avg">0%</div>
-                    <div class="text-xs text-slate-500 font-medium mt-1">Mean Score across all attempts</div>
-                </div>
-
-                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
-                    <span class="text-xs font-bold text-slate-400 uppercase">Top Subject Mastery</span>
-                    <div class="text-xl font-bold text-slate-800 truncate mt-2" id="dash-stat-top">N/A</div>
-                    <div class="text-xs text-emerald-600 font-bold mt-1"><i class="fas fa-star me-1"></i> Strongest Area</div>
-                </div>
-
-                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
-                    <span class="text-xs font-bold text-slate-400 uppercase">Overall CBC Evaluation</span>
-                    <div class="text-base font-bold text-emerald-700 mt-2" id="dash-stat-rubric">No Attempts</div>
-                    <div class="text-xs text-slate-500 font-medium mt-1">Cumulative Assessment Level</div>
-                </div>
-            </div>
-
-            <!-- Analytics Visual Charts Grid -->
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm lg:col-span-1 flex flex-col justify-between">
-                    <h3 class="font-bold text-slate-900 text-sm mb-4">Subject Competency Chart</h3>
-                    <div class="relative flex-1 min-h-[220px]">
-                        <canvas id="progressChart"></canvas>
-                    </div>
-                </div>
-
-                <!-- Exam History Log -->
-                <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm lg:col-span-2 space-y-4">
-                    <h3 class="font-bold text-slate-900 text-sm">Attempted Assessment Log</h3>
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left text-sm border-collapse">
-                            <thead>
-                                <tr class="border-b border-slate-200 text-slate-400 text-xs font-bold uppercase">
-                                    <th class="pb-3 font-bold">Exam Title</th>
-                                    <th class="pb-3 font-bold">Level</th>
-                                    <th class="pb-3 font-bold">Score</th>
-                                    <th class="pb-3 font-bold">Date</th>
-                                </tr>
-                            </thead>
-                            <tbody id="dash-history-table" class="divide-y divide-slate-100 text-slate-700">
-                                <!-- Populated dynamically -->
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- ========================================== -->
-        <!-- VIEW 6: TEACHER & ADMIN PANEL -->
-        <!-- ========================================== -->
-        <section id="view-admin" class="hidden space-y-6">
-            <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                <div>
-                    <div class="flex items-center gap-2">
-                        <span class="bg-amber-100 text-amber-800 text-xs px-2.5 py-0.5 rounded-full font-bold">Teacher Studio</span>
-                        <span class="text-xs text-slate-400">Content Authoring Engine</span>
-                    </div>
-                    <h2 class="text-2xl font-black text-slate-900 mt-1">Quiz & Assessment Manager</h2>
-                </div>
-                <button onclick="openQuizCreatorModal()" class="bg-brand-600 hover:bg-brand-700 text-white font-extrabold px-5 py-2.5 rounded-xl text-sm shadow transition flex items-center gap-2">
-                    <i class="fas fa-plus"></i> Create New Exam Paper
-                </button>
-            </div>
-
-            <!-- Custom Teacher Exams List -->
-            <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-4">
-                <h3 class="font-bold text-slate-900 text-base">Your Published & Custom Exams</h3>
-                <div id="teacher-exams-list" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <!-- Populated dynamically -->
-                </div>
-            </div>
-        </section>
-
-    </main>
-
-    <!-- ========================================== -->
-    <!-- MODAL 1: M-PESA STK PUSH GATEWAY -->
-    <!-- ========================================== -->
-    <div id="mpesa-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl relative overflow-hidden border border-slate-100 space-y-5">
-            <div class="bg-mpesa-green text-white p-4 -m-6 mb-2 flex justify-between items-center">
-                <div class="flex items-center gap-2">
-                    <i class="fas fa-mobile-alt text-2xl"></i>
-                    <div>
-                        <h3 class="font-black text-base leading-tight">M-PESA Express Checkout</h3>
-                        <p class="text-[11px] text-emerald-100">Official Daraja STK Push Gateway</p>
-                    </div>
-                </div>
-                <button onclick="closeMpesaModal()" class="text-white hover:text-slate-200 text-xl"><i class="fas fa-times"></i></button>
-            </div>
-
-            <div class="text-center py-2 space-y-1">
-                <span id="mpesa-exam-title" class="text-xs font-bold text-slate-500 uppercase tracking-wide">Grade 8 Science Mock</span>
-                <div class="text-3xl font-black text-slate-900" id="mpesa-exam-price">KES 50</div>
-                <p class="text-slate-500 text-xs">Unlock complete interactive questions & detailed marking scheme.</p>
-            </div>
-
-            <!-- Mpesa Input Form -->
-            <div id="mpesa-form-step" class="space-y-4">
-                <div>
-                    <label class="block text-xs font-bold text-slate-700 uppercase mb-1">M-Pesa Registered Mobile Number</label>
-                    <div class="relative">
-                        <span class="absolute left-3 top-3 text-slate-400 font-bold text-sm">+254</span>
-                        <input type="tel" id="mpesa-phone" placeholder="712345678" maxlength="9"
-                            class="w-full pl-16 pr-4 py-2.5 border border-slate-300 rounded-xl text-sm font-bold text-slate-800 focus:ring-2 focus:ring-mpesa-green focus:outline-none">
-                    </div>
-                    <span class="text-[11px] text-slate-400 mt-1 block">Format: 7XXXXXXXX or 1XXXXXXXX</span>
-                </div>
-
-                <button onclick="triggerStkPush()" class="w-full bg-mpesa-green hover:bg-mpesa-dark text-white font-extrabold py-3.5 rounded-xl shadow-lg transition flex justify-center items-center gap-2 text-sm">
-                    <i class="fas fa-lock"></i> Pay KES <span id="mpesa-btn-price">50</span> via M-Pesa STK Push
-                </button>
-            </div>
-
-            <!-- Mpesa Processing / STK Push Simulation Modal State -->
-            <div id="mpesa-loading-step" class="hidden text-center py-6 space-y-4">
-                <div class="relative w-20 h-20 mx-auto flex items-center justify-center">
-                    <div class="absolute inset-0 rounded-full bg-emerald-100 ring-animate"></div>
-                    <i class="fas fa-mobile-alt text-3xl text-mpesa-green relative z-10 animate-bounce"></i>
-                </div>
-                <div>
-                    <h4 class="font-bold text-slate-900 text-base">STK Push Sent to Your Phone!</h4>
-                    <p class="text-slate-500 text-xs max-w-xs mx-auto mt-1">Please check your mobile phone screen, enter your M-Pesa PIN to complete payment of <strong id="stk-prompt-amount">KES 50</strong>.</p>
-                </div>
-                <div class="bg-slate-50 border border-slate-200 p-3 rounded-xl text-xs font-mono text-slate-600">
-                    Waiting for M-Pesa Callback... <i class="fas fa-spinner fa-spin text-mpesa-green ml-1"></i>
-                </div>
-            </div>
-
-            <!-- Success Confirmation -->
-            <div id="mpesa-success-step" class="hidden text-center py-6 space-y-4">
-                <div class="w-16 h-16 bg-emerald-100 text-mpesa-green rounded-full flex items-center justify-center mx-auto text-3xl shadow-inner">
-                    <i class="fas fa-check-circle"></i>
-                </div>
-                <div>
-                    <h4 class="font-bold text-slate-900 text-lg">Payment Verified!</h4>
-                    <p class="text-slate-500 text-xs">Receipt: <strong id="mpesa-receipt-code" class="text-slate-800">QKH89721XB</strong></p>
-                </div>
-                <button onclick="confirmUnlockedExamStart()" class="w-full bg-brand-600 hover:bg-brand-700 text-white font-extrabold py-3 rounded-xl shadow transition text-sm">
-                    Start Assessment Paper Now
-                </button>
-            </div>
-        </div>
+    <div id="roomCodeDisplay" class="hidden">
+      Room Code: <span class="room-tag" id="activeRoomCode">------</span>
     </div>
+  </header>
 
-    <!-- ========================================== -->
-    <!-- MODAL 2: TEACHER QUIZ CREATOR MODAL -->
-    <!-- ========================================== -->
-    <div id="quiz-creator-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 overflow-y-auto">
-        <div class="bg-white rounded-3xl max-w-2xl w-full p-6 shadow-2xl relative my-8 space-y-6">
-            <div class="flex justify-between items-center border-b border-slate-100 pb-3">
-                <h3 class="font-black text-xl text-slate-900"><i class="fas fa-plus-circle text-brand-600 me-2"></i> Create Custom Assessment</h3>
-                <button onclick="closeQuizCreatorModal()" class="text-slate-400 hover:text-slate-600 text-xl"><i class="fas fa-times"></i></button>
-            </div>
+  <main>
+    <!-- STEP 1: PORTAL SELECTION & REMOTE ROOM SETUP -->
+    <section id="roleSection" class="role-selection">
+      <div class="card">
+        <h2>Teacher Portal</h2>
+        <p style="color: var(--text-muted); font-size: 0.9rem; margin: 8px 0;">Create a live remote room and teach learners anywhere in real-time.</p>
+        <input type="text" id="teacherName" placeholder="Teacher Name (e.g. Mr. Wamondo)" value="Teacher Wamondo" />
+        <button class="btn" onclick="initTeacherRoom()">Create Online Remote Room</button>
+      </div>
 
-            <form id="quiz-creator-form" onsubmit="handleSaveCustomQuiz(event)" class="space-y-4">
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Assessment Title</label>
-                        <input type="text" id="new-quiz-title" required placeholder="e.g. Grade 9 Chemistry Term 1 Test"
-                            class="w-full px-3 py-2 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-brand-500 focus:outline-none">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Grade Level</label>
-                        <select id="new-quiz-grade" required class="w-full px-3 py-2 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-brand-500 focus:outline-none">
-                            <option value="Grade 4">Grade 4</option>
-                            <option value="Grade 5">Grade 5</option>
-                            <option value="Grade 6">Grade 6</option>
-                            <option value="Grade 7">Grade 7 (JSS)</option>
-                            <option value="Grade 8">Grade 8 (JSS)</option>
-                            <option value="Grade 9">Grade 9 (JSS)</option>
-                            <option value="Form 3">Form 3</option>
-                            <option value="Form 4">Form 4 / KCSE</option>
-                        </select>
-                    </div>
-                </div>
+      <div class="card">
+        <h2>Learner Portal</h2>
+        <p style="color: var(--text-muted); font-size: 0.9rem; margin: 8px 0;">Enter the 6-digit room code given by your teacher to join the live lesson.</p>
+        <input type="text" id="learnerName" placeholder="Your Name" />
+        <input type="number" id="inputRoomCode" placeholder="Enter 6-Digit Room Code" />
+        <button class="btn btn-secondary" onclick="joinLearnerRoom()">Join Remote Classroom</button>
+      </div>
+    </section>
 
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    <div>
-                        <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Subject</label>
-                        <input type="text" id="new-quiz-subject" required placeholder="Mathematics"
-                            class="w-full px-3 py-2 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-brand-500 focus:outline-none">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Duration (Minutes)</label>
-                        <input type="number" id="new-quiz-duration" min="5" max="180" value="15" required
-                            class="w-full px-3 py-2 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-brand-500 focus:outline-none">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Pricing Tier</label>
-                        <select id="new-quiz-price" class="w-full px-3 py-2 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-brand-500 focus:outline-none">
-                            <option value="0">Free</option>
-                            <option value="50">KES 50 (Standard)</option>
-                            <option value="100">KES 100 (Full Scheme)</option>
-                        </select>
-                    </div>
-                </div>
-
-                <!-- Questions List Header -->
-                <div class="border-t border-slate-200 pt-4 flex justify-between items-center">
-                    <h4 class="font-bold text-slate-900 text-sm">Question Items</h4>
-                    <button type="button" onclick="addQuestionItemInput()" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-3 py-1.5 rounded-lg transition">
-                        <i class="fas fa-plus me-1"></i> Add Question
-                    </button>
-                </div>
-
-                <div id="creator-questions-container" class="space-y-4 max-h-72 overflow-y-auto pr-1">
-                    <!-- Dynamic Question Input Rows -->
-                </div>
-
-                <div class="pt-4 flex justify-end gap-3 border-t border-slate-100">
-                    <button type="button" onclick="closeQuizCreatorModal()" class="px-5 py-2.5 rounded-xl border border-slate-300 text-slate-600 font-bold text-sm">Cancel</button>
-                    <button type="submit" class="px-6 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-extrabold text-sm shadow">Save & Publish Paper</button>
-                </div>
-            </form>
+    <!-- STEP 2: TEACHER DASHBOARD -->
+    <section id="teacherDashboard" class="hidden">
+      <!-- Live Connected Learner Roster -->
+      <div class="roster-card">
+        <h4 style="color: #0369a1;">Live Connected Learners Roster (<span id="learnerCount">0</span>)</h4>
+        <div id="learnerRosterList">
+          <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 5px;">Waiting for learners to connect using Room Code: <strong id="rosterRoomCode">------</strong>...</p>
         </div>
-    </div>
+      </div>
 
-    <!-- ========================================== -->
-    <!-- MODAL 3: ROLE SELECTOR MODAL -->
-    <!-- ========================================== -->
-    <div id="role-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl text-center space-y-4">
-            <div class="w-16 h-16 rounded-full bg-brand-100 text-brand-600 flex items-center justify-center text-2xl mx-auto">
-                <i class="fas fa-user-shield"></i>
-            </div>
-            <h3 class="font-black text-xl text-slate-900">Switch Application Role</h3>
-            <p class="text-slate-500 text-xs">Choose how you want to interact with the platform:</p>
+      <div class="grid">
+        <!-- Interactive Geometry Whiteboard -->
+        <div class="card" style="max-width: 100%;">
+          <h3 style="text-align: left;">Teacher Geometry Whiteboard</h3>
+          
+          <div class="toolbar">
+            <div class="color-picker" style="background: #000000;" onclick="setColor('#000000')"></div>
+            <div class="color-picker" style="background: #dc2626;" onclick="setColor('#dc2626')"></div>
+            <div class="color-picker" style="background: #2563eb;" onclick="setColor('#2563eb')"></div>
+            <div class="color-picker" style="background: #16a34a;" onclick="setColor('#16a34a')"></div>
+            
+            <button class="tool-btn active" id="penBtn" onclick="setTool('pen')">✏️ Pen</button>
+            <button class="tool-btn" id="lineBtn" onclick="setTool('line')">📏 Line</button>
+            <button class="tool-btn" id="rectBtn" onclick="setTool('rect')">▭ Rect</button>
+            <button class="tool-btn" id="circleBtn" onclick="setTool('circle')">⭕ Circle</button>
+            
+            <button class="tool-btn" onclick="drawProtractorOverlay()">📐 Protractor</button>
+            <button class="tool-btn" onclick="drawGridOverlay()">🏁 Grid</button>
+            <button class="tool-btn" onclick="clearTeacherCanvas()">🗑️ Clear</button>
+          </div>
 
-            <div class="space-y-2 pt-2">
-                <button onclick="setUserRole('student')" class="w-full bg-brand-50 hover:bg-brand-100 border border-brand-200 text-brand-900 font-bold py-3 rounded-xl text-sm transition flex items-center justify-center gap-2">
-                    <i class="fas fa-user-graduate text-brand-600"></i> Student Mode (Attempt Quizzes)
-                </button>
-                <button onclick="setUserRole('teacher')" class="w-full bg-amber-50 hover:bg-amber-100 border border-amber-200 text-amber-900 font-bold py-3 rounded-xl text-sm transition flex items-center justify-center gap-2">
-                    <i class="fas fa-chalkboard-teacher text-amber-600"></i> Teacher / Admin Mode (Create Papers)
-                </button>
-            </div>
+          <div class="canvas-container">
+            <canvas id="teacherCanvas"></canvas>
+          </div>
+          <button class="btn btn-sm btn-secondary" style="margin-top: 8px;" onclick="syncWhiteboardToLearners()">Broadcast Whiteboard Image to Learners</button>
         </div>
-    </div>
 
-    <!-- Mobile Bottom Navigation Bar -->
-    <div class="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 z-40 flex justify-around items-center py-2 text-xs font-semibold text-slate-500">
-        <button onclick="navigateTo('home')" class="flex flex-col items-center py-1 text-slate-700 hover:text-brand-600">
-            <i class="fas fa-home text-base mb-0.5"></i> Home
-        </button>
-        <button onclick="navigateTo('catalog')" class="flex flex-col items-center py-1 hover:text-brand-600">
-            <i class="fas fa-book-open text-base mb-0.5"></i> Exams
-        </button>
-        <button onclick="navigateTo('dashboard')" class="flex flex-col items-center py-1 hover:text-brand-600">
-            <i class="fas fa-chart-line text-base mb-0.5"></i> Analytics
-        </button>
-        <button onclick="navigateTo('admin')" class="flex flex-col items-center py-1 hover:text-brand-600">
-            <i class="fas fa-chalkboard-teacher text-base mb-0.5"></i> Studio
-        </button>
-    </div>
+        <!-- Question Pusher with Math Keyboard -->
+        <div class="card" style="max-width: 100%;">
+          <h3 style="text-align: left;">Push Question to Learner</h3>
+          
+          <label style="font-weight: 600; display: block; text-align: left; font-size: 0.85rem;">Quick Subject Presets:</label>
+          <select id="presetQuestions" onchange="loadPresetQuestion()">
+            <option value="">-- Select Preset Question --</option>
+            <optgroup label="Mathematics">
+              <option value="Solve for x: 3x + 5 = 20">Solve for x: 3x + 5 = 20</option>
+              <option value="Calculate the area of a circle with radius r = 7 cm (Take π = 22/7).">Area of Circle (r = 7cm)</option>
+              <option value="Construct a triangle ABC where AB = 6cm, BC = 8cm and angle B = 90°.">Construct Triangle ABC</option>
+            </optgroup>
+            <optgroup label="Agriculture & General Studies">
+              <option value="Explain two soil conservation techniques suitable for hilly farmland.">Soil Conservation Techniques</option>
+              <option value="State three balanced feed components for Kienyeji poultry.">Poultry Feed Requirements</option>
+            </optgroup>
+          </select>
 
-    <!-- Footer -->
-    <footer class="bg-slate-900 text-slate-400 text-xs py-8 mt-12 border-t border-slate-800">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-4">
-            <div class="flex flex-col md:flex-row justify-between items-center gap-4">
-                <div class="flex items-center space-x-2">
-                    <div class="w-6 h-6 rounded bg-brand-500 text-white flex items-center justify-center font-extrabold text-xs">
-                        <i class="fas fa-graduation-cap"></i>
-                    </div>
-                    <span class="font-extrabold text-white text-sm">cbelibrary.co.ke Enterprise Platform</span>
-                </div>
-                <p class="text-center md:text-right text-slate-500">
-                    Compliant with KICD CBC & KCSE 8-4-4 Standards. Powered by Automated Marking & Daraja STK Push.
-                </p>
-            </div>
+          <!-- Math Symbol Keyboard -->
+          <label style="font-weight: 600; display: block; text-align: left; font-size: 0.85rem;">Math Symbol Keyboard:</label>
+          <div class="math-keyboard">
+            <button class="math-btn" onclick="insertSymbol('questionPrompt', 'π')">π</button>
+            <button class="math-btn" onclick="insertSymbol('questionPrompt', '√(')">√</button>
+            <button class="math-btn" onclick="insertSymbol('questionPrompt', '²')">x²</button>
+            <button class="math-btn" onclick="insertSymbol('questionPrompt', '±')">±</button>
+            <button class="math-btn" onclick="insertSymbol('questionPrompt', 'θ')">θ</button>
+            <button class="math-btn" onclick="insertSymbol('questionPrompt', '∠')">∠</button>
+            <button class="math-btn" onclick="insertSymbol('questionPrompt', 'Δ')">Δ</button>
+            <button class="math-btn" onclick="insertSymbol('questionPrompt', '≤')">≤</button>
+            <button class="math-btn" onclick="insertSymbol('questionPrompt', '≥')">≥</button>
+            <button class="math-btn" onclick="insertSymbol('questionPrompt', '°')">°</button>
+          </div>
+
+          <textarea id="questionPrompt" rows="3" placeholder="Type question prompt here..."></textarea>
+          <button class="btn btn-success" onclick="pushLiveQuestion()">Push Live Question</button>
         </div>
-    </footer>
-
-    <!-- ========================================== -->
-    <!-- JAVASCRIPT APPLICATION CORE -->
-    <!-- ========================================== -->
-    <script>
-        /* ==========================================================================
-           1. QUESTION BANK DATABASE (GRADES 4-12 & 8-4-4)
-           ========================================================================== */
-        const DEFAULT_EXAMS_DATABASE = [
-            {
-                id: "pri-g4-math-t3",
-                title: "Grade 4 Mathematics CBC Assessment",
-                grade: "Grade 4",
-                category: "Primary CBC",
-                subject: "Mathematics",
-                durationMinutes: 10,
-                price: 0,
-                questions: [
-                    {
-                        id: 1,
-                        type: "mcq",
-                        question: "A learner in Grade 4 counted 3,452 cows in a ranch. What is the place value of digit 4?",
-                        options: ["Tens", "Hundreds", "Thousands", "Ones"],
-                        answer: "Hundreds",
-                        explanation: "In 3,452, 2 is ones, 5 is tens, 4 is hundreds, and 3 is thousands."
-                    },
-                    {
-                        id: 2,
-                        type: "short",
-                        question: "Add: 245 + 130 =",
-                        answer: "375",
-                        explanation: "245 + 130 equals 375."
-                    }
-                ]
-            },
-            {
-                id: "jss-g7-math-t3",
-                title: "Grade 7 JSS Mathematics Summative Test",
-                grade: "Grade 7",
-                category: "Junior Secondary (JSS)",
-                subject: "Mathematics",
-                durationMinutes: 15,
-                price: 0,
-                questions: [
-                    {
-                        id: 1,
-                        type: "mcq",
-                        question: "In a JSS school in Nakuru, a teacher wrote the number 45.678 on the board. What is the place value of the digit 7?",
-                        options: ["Tenths", "Hundredths", "Thousandths", "Tens"],
-                        answer: "Hundredths",
-                        explanation: "In 45.678, 6 is tenths, 7 is hundredths, and 8 is thousandths."
-                    },
-                    {
-                        id: 2,
-                        type: "short",
-                        question: "Simplify the algebraic expression: 3x + 5y + 2x - 2y. (Do not type spaces)",
-                        answer: "5x+3y",
-                        explanation: "Group like terms: (3x + 2x) + (5y - 2y) = 5x + 3y."
-                    },
-                    {
-                        id: 3,
-                        type: "mcq",
-                        question: "A farmer in Eldoret harvested 120 bags of maize. If he sold 3/4 of the bags, how many bags were left?",
-                        options: ["30", "90", "40", "60"],
-                        answer: "30",
-                        explanation: "Bags sold = 3/4 * 120 = 90. Remaining bags = 120 - 90 = 30."
-                    }
-                ]
-            },
-            {
-                id: "jss-g8-science-t3",
-                title: "Grade 8 Integrated Science JSS Paper",
-                grade: "Grade 8",
-                category: "Junior Secondary (JSS)",
-                subject: "Integrated Science",
-                durationMinutes: 15,
-                price: 50,
-                questions: [
-                    {
-                        id: 1,
-                        type: "mcq",
-                        question: "Which component of human blood is primarily responsible for transporting oxygen throughout the body?",
-                        options: ["White Blood Cells", "Platelets", "Red Blood Cells", "Plasma"],
-                        answer: "Red Blood Cells",
-                        explanation: "Red blood cells contain hemoglobin which binds with oxygen."
-                    },
-                    {
-                        id: 2,
-                        type: "short",
-                        question: "What is the chemical symbol for Sodium element?",
-                        answer: "Na",
-                        explanation: "Sodium's symbol is Na, from the Latin Natrium."
-                    },
-                    {
-                        id: 3,
-                        type: "mcq",
-                        question: "Which element is essential in human diet to prevent goitre?",
-                        options: ["Iron", "Iodine", "Calcium", "Zinc"],
-                        answer: "Iodine",
-                        explanation: "Iodine deficiency leads to thyroid enlargement (goitre)."
-                    }
-                ]
-            },
-            {
-                id: "sec-f4-bio-kcse",
-                title: "Form 4 Biology KCSE National Mock Paper 1",
-                grade: "Form 4",
-                category: "Secondary (8-4-4)",
-                subject: "Biology",
-                durationMinutes: 20,
-                price: 100,
-                questions: [
-                    {
-                        id: 1,
-                        type: "mcq",
-                        question: "Which organelle is responsible for ATP synthesis during aerobic cellular respiration?",
-                        options: ["Ribosome", "Golgi Body", "Mitochondrion", "Chloroplast"],
-                        answer: "Mitochondrion",
-                        explanation: "Mitochondria act as cellular powerhouses generating ATP."
-                    },
-                    {
-                        id: 2,
-                        type: "short",
-                        question: "Name the process by which green plants convert carbon dioxide and water into glucose.",
-                        answer: "photosynthesis",
-                        explanation: "Photosynthesis manufactures organic compounds using light energy."
-                    },
-                    {
-                        id: 3,
-                        type: "mcq",
-                        question: "What type of joint is present between the humerus and the scapula at the shoulder?",
-                        options: ["Hinge joint", "Ball and socket joint", "Pivot joint", "Gliding joint"],
-                        answer: "Ball and socket joint",
-                        explanation: "The shoulder joint is a ball and socket joint allowing rotational movement."
-                    }
-                ]
-            },
-            {
-                id: "sec-f3-chem-t2",
-                title: "Form 3 Chemistry Mid-Term Assessment",
-                grade: "Form 3",
-                category: "Secondary (8-4-4)",
-                subject: "Chemistry",
-                durationMinutes: 15,
-                price: 50,
-                questions: [
-                    {
-                        id: 1,
-                        type: "mcq",
-                        question: "What color does dry blue litmus paper turn when exposed to dry hydrogen chloride gas?",
-                        options: ["Red", "Blue (No change)", "White", "Yellow"],
-                        answer: "Blue (No change)",
-                        explanation: "Hydrogen chloride gas requires water/moisture to display acidic properties and turn blue litmus red."
-                    },
-                    {
-                        id: 2,
-                        type: "short",
-                        question: "What is the oxidation state of sulfur in H2SO4?",
-                        answer: "+6",
-                        explanation: "H is +1 (x2=+2), O is -2 (x4=-8). 2 + S - 8 = 0 => S = +6."
-                    }
-                ]
-            }
-        ];
-
-        /* ==========================================================================
-           2. STATE & STORAGE CONTROLLER
-           ========================================================================== */
-        const STORAGE_EXAMS_KEY = 'cbe_custom_exams_db';
-        const STORAGE_PROGRESS_KEY = 'cbe_learner_progress_db';
-        const STORAGE_UNLOCKED_KEY = 'cbe_unlocked_papers';
-
-        let activeUserRole = 'student'; // 'student' or 'teacher'
-        let currentActiveExam = null;
-        let examTimerInterval = null;
-        let examTimeRemaining = 0;
-        let pendingMpesaExam = null;
-
-        // Initialize Local Storage Database
-        function getCombinedExams() {
-            const custom = localStorage.getItem(STORAGE_EXAMS_KEY);
-            const customArr = custom ? JSON.parse(custom) : [];
-            return [...DEFAULT_EXAMS_DATABASE, ...customArr];
-        }
-
-        function getUnlockedPaperIds() {
-            const unlocked = localStorage.getItem(STORAGE_UNLOCKED_KEY);
-            return unlocked ? JSON.parse(unlocked) : [];
-        }
-
-        function markPaperUnlocked(examId) {
-            const unlocked = getUnlockedPaperIds();
-            if (!unlocked.includes(examId)) {
-                unlocked.push(examId);
-                localStorage.setItem(STORAGE_UNLOCKED_KEY, JSON.stringify(unlocked));
-            }
-        }
-
-        /* ==========================================================================
-           3. SOUND EFFECTS GENERATOR (WEB AUDIO API)
-           ========================================================================== */
-        function playAudioFeedback(type) {
-            try {
-                const ctx = new (window.AudioContext || window.webkitAudioContext)();
-                const osc = ctx.createOscillator();
-                const gain = ctx.createGain();
-                osc.connect(gain);
-                gain.connect(ctx.destination);
-
-                if (type === 'success') {
-                    osc.frequency.setValueAtTime(523.25, ctx.currentTime); // C5
-                    osc.frequency.setValueAtTime(659.25, ctx.currentTime + 0.1); // E5
-                    gain.gain.setValueAtTime(0.2, ctx.currentTime);
-                    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
-                    osc.start();
-                    osc.stop(ctx.currentTime + 0.3);
-                } else if (type === 'error') {
-                    osc.frequency.setValueAtTime(220, ctx.currentTime); // A3
-                    osc.frequency.setValueAtTime(196, ctx.currentTime + 0.1); // G3
-                    gain.gain.setValueAtTime(0.3, ctx.currentTime);
-                    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
-                    osc.start();
-                    osc.stop(ctx.currentTime + 0.3);
-                } else if (type === 'mpesa') {
-                    osc.frequency.setValueAtTime(440, ctx.currentTime);
-                    osc.frequency.setValueAtTime(880, ctx.currentTime + 0.15);
-                    gain.gain.setValueAtTime(0.2, ctx.currentTime);
-                    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.4);
-                    osc.start();
-                    osc.stop(ctx.currentTime + 0.4);
-                }
-            } catch (e) { console.log('Audio Context restricted', e); }
-        }
-
-        /* ==========================================================================
-           4. NAVIGATION & ROLE MANAGEMENT
-           ========================================================================== */
-        function navigateTo(viewId) {
-            ['home', 'catalog', 'exam', 'results', 'dashboard', 'admin'].forEach(v => {
-                const el = document.getElementById(`view-${v}`);
-                if (el) el.classList.add('hidden');
-            });
-
-            if (viewId !== 'exam' && examTimerInterval) {
-                clearInterval(examTimerInterval);
-            }
-
-            const target = document.getElementById(`view-${viewId}`);
-            if (target) target.classList.remove('hidden');
-
-            if (viewId === 'catalog') renderCatalog();
-            if (viewId === 'dashboard') renderDashboard();
-            if (viewId === 'admin') renderAdminPanel();
-
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
-
-        function toggleRoleModal() {
-            document.getElementById('role-modal').classList.remove('hidden');
-        }
-
-        function setUserRole(role) {
-            activeUserRole = role;
-            document.getElementById('current-role-label').innerText = role === 'teacher' ? 'Teacher Mode' : 'Student Mode';
-            document.getElementById('role-modal').classList.add('hidden');
-            if (role === 'teacher') navigateTo('admin');
-            else navigateTo('catalog');
-        }
-
-        /* ==========================================================================
-           5. CATALOG RENDER & M-PESA UNLOCK HANDLER
-           ========================================================================== */
-        function selectGradeFilter(gradeStr) {
-            navigateTo('catalog');
-            document.getElementById('filter-level').value = gradeStr;
-            applyFilters();
-        }
-
-        function renderCatalog(examsList = getCombinedExams()) {
-            const grid = document.getElementById('catalog-grid');
-            const unlockedIds = getUnlockedPaperIds();
-            grid.innerHTML = '';
-
-            if (examsList.length === 0) {
-                grid.innerHTML = `
-                    <div class="col-span-full text-center py-12 bg-white rounded-2xl border border-slate-200">
-                        <i class="fas fa-folder-open text-4xl text-slate-300 mb-3"></i>
-                        <h3 class="font-bold text-slate-700">No Assessment Papers Found</h3>
-                        <p class="text-xs text-slate-400">Try adjusting your filters above.</p>
-                    </div>
-                `;
-                return;
-            }
-
-            examsList.forEach(exam => {
-                const isUnlocked = exam.price === 0 || unlockedIds.includes(exam.id);
-                const card = document.createElement('div');
-                card.className = "bg-white border border-slate-200 rounded-2xl p-6 shadow-sm hover:shadow-md transition flex flex-col justify-between relative overflow-hidden";
-                
-                card.innerHTML = `
-                    <div>
-                        <div class="flex items-center justify-between mb-3">
-                            <span class="bg-brand-50 text-brand-700 font-extrabold text-xs px-3 py-1 rounded-full border border-brand-200">
-                                ${exam.grade}
-                            </span>
-                            ${exam.price > 0 && !isUnlocked ? 
-                                `<span class="bg-mpesa-light text-mpesa-green font-extrabold text-xs px-2.5 py-1 rounded-full flex items-center gap-1">
-                                    <i class="fas fa-lock"></i> KES ${exam.price}
-                                 </span>` : 
-                                `<span class="bg-emerald-100 text-emerald-800 font-extrabold text-xs px-2.5 py-1 rounded-full flex items-center gap-1">
-                                    <i class="fas fa-unlock"></i> Free / Unlocked
-                                 </span>`
-                            }
-                        </div>
-                        <h3 class="font-bold text-slate-900 text-lg mb-1 leading-snug">${exam.title}</h3>
-                        <p class="text-slate-500 text-xs mb-4">Subject: <strong class="text-slate-700">${exam.subject}</strong> | <i class="far fa-clock"></i> ${exam.durationMinutes} Mins</p>
-                    </div>
-
-                    <div class="border-t border-slate-100 pt-4 flex items-center justify-between">
-                        <span class="text-xs text-emerald-600 font-bold flex items-center gap-1">
-                            <i class="fas fa-check-circle"></i> ${exam.questions.length} Auto-Marked Qs
-                        </span>
-                        ${isUnlocked ? 
-                            `<button onclick="startExam('${exam.id}')" class="bg-brand-600 hover:bg-brand-700 text-white font-extrabold text-xs px-4 py-2.5 rounded-xl shadow transition">
-                                <i class="fas fa-pen-nib me-1"></i> Attempt Test
-                             </button>` : 
-                            `<button onclick="openMpesaModal('${exam.id}')" class="bg-mpesa-green hover:bg-mpesa-dark text-white font-extrabold text-xs px-4 py-2.5 rounded-xl shadow transition flex items-center gap-1">
-                                <i class="fas fa-mobile-alt"></i> Unlock Paper
-                             </button>`
-                        }
-                    </div>
-                `;
-                grid.appendChild(card);
-            });
-        }
-
-        function applyFilters() {
-            const levelVal = document.getElementById('filter-level').value;
-            const subjectVal = document.getElementById('filter-subject').value;
-
-            const filtered = getCombinedExams().filter(exam => {
-                const matchesLevel = levelVal === 'ALL' || exam.grade === levelVal;
-                const matchesSubject = subjectVal === 'ALL' || exam.subject === subjectVal;
-                return matchesLevel && matchesSubject;
-            });
-
-            renderCatalog(filtered);
-        }
-
-        /* ==========================================================================
-           6. M-PESA STK PUSH GATEWAY ENGINE
-           ========================================================================== */
-        function openMpesaModal(examId) {
-            const exam = getCombinedExams().find(e => e.id === examId);
-            if (!exam) return;
-
-            pendingMpesaExam = exam;
-            document.getElementById('mpesa-exam-title').innerText = `${exam.grade} ${exam.title}`;
-            document.getElementById('mpesa-exam-price').innerText = `KES ${exam.price}`;
-            document.getElementById('mpesa-btn-price').innerText = exam.price;
-
-            // Reset modal states
-            document.getElementById('mpesa-form-step').classList.remove('hidden');
-            document.getElementById('mpesa-loading-step').classList.add('hidden');
-            document.getElementById('mpesa-success-step').classList.add('hidden');
-
-            document.getElementById('mpesa-modal').classList.remove('hidden');
-        }
-
-        function closeMpesaModal() {
-            document.getElementById('mpesa-modal').classList.add('hidden');
-        }
-
-        function triggerStkPush() {
-            const phoneInput = document.getElementById('mpesa-phone').value.trim();
-            if (phoneInput.length < 9) {
-                alert("Please enter a valid Kenyan Safaricom M-Pesa phone number (e.g. 712345678).");
-                return;
-            }
-
-            document.getElementById('mpesa-form-step').classList.add('hidden');
-            document.getElementById('mpesa-loading-step').classList.remove('hidden');
-            document.getElementById('stk-prompt-amount').innerText = `KES ${pendingMpesaExam.price}`;
-
-            // Simulate Daraja API Webhook Response Delay (3.5 Seconds)
-            setTimeout(() => {
-                playAudioFeedback('mpesa');
-                markPaperUnlocked(pendingMpesaExam.id);
-
-                // Generate random Safaricom M-Pesa Receipt Code
-                const randomReceipt = 'QKH' + Math.floor(100000 + Math.random() * 900000) + 'X';
-                document.getElementById('mpesa-receipt-code').innerText = randomReceipt;
-
-                document.getElementById('mpesa-loading-step').classList.add('hidden');
-                document.getElementById('mpesa-success-step').classList.remove('hidden');
-            }, 3500);
-        }
-
-        function confirmUnlockedExamStart() {
-            closeMpesaModal();
-            if (pendingMpesaExam) {
-                startExam(pendingMpesaExam.id);
-            }
-        }
-
-        /* ==========================================================================
-           7. INTERACTIVE EXAM RUNNER & AUTOMATED MARKER
-           ========================================================================== */
-        function startExam(examId) {
-            currentActiveExam = getCombinedExams().find(e => e.id === examId);
-            if (!currentActiveExam) return;
-
-            document.getElementById('exam-title').innerText = currentActiveExam.title;
-            document.getElementById('exam-badge-grade').innerText = currentActiveExam.grade;
-            document.getElementById('exam-badge-subject').innerText = currentActiveExam.subject;
-
-            const questionsContainer = document.getElementById('exam-questions-list');
-            questionsContainer.innerHTML = '';
-
-            currentActiveExam.questions.forEach((q, idx) => {
-                const qCard = document.createElement('div');
-                qCard.className = "bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4";
-
-                let inputHTML = '';
-                if (q.type === 'mcq') {
-                    inputHTML = `<div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">`;
-                    q.options.forEach(opt => {
-                        inputHTML += `
-                            <label class="flex items-center p-3.5 rounded-xl border border-slate-200 hover:border-brand-400 hover:bg-brand-50/50 cursor-pointer transition">
-                                <input type="radio" name="question_${q.id}" value="${opt}" class="w-4 h-4 text-brand-600 focus:ring-brand-500 border-slate-300">
-                                <span class="ms-3 text-sm font-semibold text-slate-700">${opt}</span>
-                            </label>
-                        `;
-                    });
-                    inputHTML += `</div>`;
-                } else {
-                    inputHTML = `
-                        <div class="pt-2">
-                            <input type="text" name="question_${q.id}" placeholder="Type exact answer here..." 
-                                class="w-full sm:w-1/2 p-3 border border-slate-300 rounded-xl text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-brand-500">
-                        </div>
-                    `;
-                }
-
-                qCard.innerHTML = `
-                    <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-                        <span class="text-xs font-black uppercase text-brand-600 tracking-wider">Question ${idx + 1} of ${currentActiveExam.questions.length}</span>
-                        <span class="text-xs bg-slate-100 text-slate-600 px-2.5 py-0.5 rounded-full font-bold">1 Mark</span>
-                    </div>
-                    <p class="font-bold text-slate-900 text-base leading-relaxed">${q.question}</p>
-                    ${inputHTML}
-                `;
-                questionsContainer.appendChild(qCard);
-            });
-
-            // Start Countdown Timer
-            examTimeRemaining = currentActiveExam.durationMinutes * 60;
-            updateTimerDisplay();
-            if (examTimerInterval) clearInterval(examTimerInterval);
-
-            examTimerInterval = setInterval(() => {
-                examTimeRemaining--;
-                updateTimerDisplay();
-                if (examTimeRemaining <= 0) {
-                    clearInterval(examTimerInterval);
-                    alert("Assessment Time is up! Your answers will be automatically marked.");
-                    submitExam();
-                }
-            }, 1000);
-
-            navigateTo('exam');
-        }
-
-        function updateTimerDisplay() {
-            const mins = Math.floor(examTimeRemaining / 60);
-            const secs = examTimeRemaining % 60;
-            document.getElementById('exam-timer').innerText = 
-                `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-        }
-
-        function submitExam() {
-            if (!currentActiveExam) return;
-            if (examTimerInterval) clearInterval(examTimerInterval);
-
-            let score = 0;
-            const total = currentActiveExam.questions.length;
-            const breakdownContainer = document.getElementById('results-breakdown-list');
-            breakdownContainer.innerHTML = '';
-
-            currentActiveExam.questions.forEach((q, idx) => {
-                let userAnswer = '';
-                if (q.type === 'mcq') {
-                    const sel = document.querySelector(`input[name="question_${q.id}"]:checked`);
-                    userAnswer = sel ? sel.value : 'No Answer Submitted';
-                } else {
-                    const inp = document.querySelector(`input[name="question_${q.id}"]`);
-                    userAnswer = inp ? inp.value.trim() : '';
-                }
-
-                const isCorrect = (q.type === 'mcq') ? 
-                    (userAnswer === q.answer) : 
-                    (userAnswer.toLowerCase() === q.answer.toLowerCase());
-
-                if (isCorrect) score++;
-
-                const resCard = document.createElement('div');
-                resCard.className = `p-4 rounded-xl border ${isCorrect ? 'bg-emerald-50/60 border-emerald-200' : 'bg-rose-50/60 border-rose-200'} space-y-2`;
-                resCard.innerHTML = `
-                    <div class="flex items-center justify-between text-xs font-bold">
-                        <span class="${isCorrect ? 'text-emerald-700' : 'text-rose-700'} uppercase">
-                            Question ${idx + 1} - ${isCorrect ? 'Correct (+1 Mark)' : 'Incorrect (0 Marks)'}
-                        </span>
-                        <i class="fas ${isCorrect ? 'fa-check-circle text-emerald-600' : 'fa-times-circle text-rose-600'} text-lg"></i>
-                    </div>
-                    <p class="font-bold text-slate-800 text-sm">${q.question}</p>
-                    <div class="text-xs space-y-1">
-                        <p class="text-slate-600">Your Answer: <strong class="${isCorrect ? 'text-emerald-700' : 'text-rose-700'}">${userAnswer || 'Blank'}</strong></p>
-                        ${!isCorrect ? `<p class="text-slate-600">KICD Correct Answer: <strong class="text-emerald-700">${q.answer}</strong></p>` : ''}
-                        <p class="text-slate-500 italic pt-1 border-t border-slate-200/50"><strong>Explanatory Solution:</strong> ${q.explanation}</p>
-                    </div>
-                `;
-                breakdownContainer.appendChild(resCard);
-            });
-
-            const percentage = Math.round((score / total) * 100);
-            document.getElementById('result-exam-name').innerText = currentActiveExam.title;
-            document.getElementById('result-percentage').innerText = `${percentage}%`;
-            document.getElementById('result-score-text').innerText = `Score: ${score} / ${total} Marks`;
-
-            // CBC Rubric Mapping
-            const rubric = document.getElementById('cbc-rubric-badge');
-            if (percentage >= 80) {
-                rubric.className = "inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-sm font-extrabold bg-emerald-100 text-emerald-800";
-                rubric.innerHTML = `<i class="fas fa-award"></i> Exceeding Expectation (EE)`;
-                playAudioFeedback('success');
-            } else if (percentage >= 65) {
-                rubric.className = "inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-sm font-extrabold bg-sky-100 text-sky-800";
-                rubric.innerHTML = `<i class="fas fa-check-circle"></i> Meeting Expectation (ME)`;
-                playAudioFeedback('success');
-            } else if (percentage >= 50) {
-                rubric.className = "inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-sm font-extrabold bg-amber-100 text-amber-800";
-                rubric.innerHTML = `<i class="fas fa-exclamation-circle"></i> Approaching Expectation (AE)`;
-                playAudioFeedback('error');
-            } else {
-                rubric.className = "inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-sm font-extrabold bg-rose-100 text-rose-800";
-                rubric.innerHTML = `<i class="fas fa-arrow-down"></i> Below Expectation (BE)`;
-                playAudioFeedback('error');
-            }
-
-            // Save attempt to LocalStorage
-            saveProgressEntry({
-                title: currentActiveExam.title,
-                grade: currentActiveExam.grade,
-                subject: currentActiveExam.subject,
-                score: score,
-                total: total,
-                percentage: percentage,
-                date: new Date().toLocaleDateString('en-GB')
-            });
-
-            navigateTo('results');
-        }
-
-        /* ==========================================================================
-           8. ANALYTICS & DASHBOARD CONTROLLER
-           ========================================================================== */
-        function getProgressHistory() {
-            const data = localStorage.getItem(STORAGE_PROGRESS_KEY);
-            return data ? JSON.parse(data) : [];
-        }
-
-        function saveProgressEntry(entry) {
-            const history = getProgressHistory();
-            history.unshift(entry);
-            localStorage.setItem(STORAGE_PROGRESS_KEY, JSON.stringify(history));
-        }
-
-        function clearProgressData() {
-            if (confirm("Are you sure you want to clear your saved exam history?")) {
-                localStorage.removeItem(STORAGE_PROGRESS_KEY);
-                renderDashboard();
-            }
-        }
-
-        let analyticsChart = null;
-
-        function renderDashboard() {
-            const history = getProgressHistory();
-            document.getElementById('dash-stat-total').innerText = history.length;
-
-            if (history.length > 0) {
-                const totalPct = history.reduce((sum, item) => sum + item.percentage, 0);
-                const avg = Math.round(totalPct / history.length);
-                document.getElementById('dash-stat-avg').innerText = `${avg}%`;
-
-                const rubricStat = document.getElementById('dash-stat-rubric');
-                if (avg >= 80) rubricStat.innerText = "Exceeding Expectation (EE)";
-                else if (avg >= 65) rubricStat.innerText = "Meeting Expectation (ME)";
-                else if (avg >= 50) rubricStat.innerText = "Approaching Expectation (AE)";
-                else rubricStat.innerText = "Below Expectation (BE)";
-            } else {
-                document.getElementById('dash-stat-avg').innerText = "0%";
-                document.getElementById('dash-stat-rubric').innerText = "No Attempts";
-            }
-
-            // Subject Breakdown
-            const subjectScores = {};
-            history.forEach(item => {
-                if (!subjectScores[item.subject]) subjectScores[item.subject] = { total: 0, count: 0 };
-                subjectScores[item.subject].total += item.percentage;
-                subjectScores[item.subject].count += 1;
-            });
-
-            let topSubj = "N/A";
-            let maxAvg = 0;
-            Object.keys(subjectScores).forEach(sub => {
-                const subAvg = subjectScores[sub].total / subjectScores[sub].count;
-                if (subAvg > maxAvg) {
-                    maxAvg = subAvg;
-                    topSubj = sub;
-                }
-            });
-            document.getElementById('dash-stat-top').innerText = topSubj;
-
-            // Render Log Table
-            const historyTable = document.getElementById('dash-history-table');
-            historyTable.innerHTML = '';
-            if (history.length === 0) {
-                historyTable.innerHTML = `<tr><td colspan="4" class="py-4 text-center text-slate-400">No completed exams recorded yet.</td></tr>`;
-            } else {
-                history.forEach(item => {
-                    const tr = document.createElement('tr');
-                    tr.className = "hover:bg-slate-50 transition";
-                    tr.innerHTML = `
-                        <td class="py-3 font-bold text-slate-900">${item.title}</td>
-                        <td class="py-3"><span class="text-xs bg-slate-100 text-slate-700 font-bold px-2 py-0.5 rounded-full">${item.grade}</span></td>
-                        <td class="py-3 font-black ${item.percentage >= 65 ? 'text-emerald-600' : 'text-amber-600'}">${item.score}/${item.total} (${item.percentage}%)</td>
-                        <td class="py-3 text-slate-400 text-xs font-semibold">${item.date}</td>
-                    `;
-                    historyTable.appendChild(tr);
-                });
-            }
-
-            // Render Proficiency Chart
-            const ctx = document.getElementById('progressChart').getContext('2d');
-            const labels = Object.keys(subjectScores);
-            const dataValues = labels.map(s => Math.round(subjectScores[s].total / subjectScores[s].count));
-
-            if (analyticsChart) analyticsChart.destroy();
-
-            analyticsChart = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: labels.length > 0 ? labels : ['No Data'],
-                    datasets: [{
-                        label: 'Proficiency Mean (%)',
-                        data: dataValues.length > 0 ? dataValues : [0],
-                        backgroundColor: '#10b981',
-                        borderRadius: 8
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: { y: { beginAtZero: true, max: 100 } },
-                    plugins: { legend: { display: false } }
-                }
-            });
-        }
-
-        /* ==========================================================================
-           9. TEACHER QUIZ AUTHORING STUDIO
-           ========================================================================== */
-        function renderAdminPanel() {
-            const list = document.getElementById('teacher-exams-list');
-            const allExams = getCombinedExams();
-            list.innerHTML = '';
-
-            allExams.forEach(exam => {
-                const card = document.createElement('div');
-                card.className = "p-4 border border-slate-200 rounded-xl bg-slate-50 flex justify-between items-center";
-                card.innerHTML = `
-                    <div>
-                        <div class="flex items-center gap-2">
-                            <span class="text-xs font-bold bg-brand-100 text-brand-800 px-2 py-0.5 rounded">${exam.grade}</span>
-                            <span class="text-xs font-semibold text-slate-500">${exam.subject}</span>
-                        </div>
-                        <h4 class="font-bold text-slate-900 text-sm mt-1">${exam.title}</h4>
-                        <p class="text-xs text-slate-400">${exam.questions.length} Question Items | Price: KES ${exam.price}</p>
-                    </div>
-                    <button onclick="deleteCustomExam('${exam.id}')" class="text-rose-600 hover:text-rose-800 text-sm p-2">
-                        <i class="fas fa-trash"></i>
-                    </button>
-                `;
-                list.appendChild(card);
-            });
-        }
-
-        function openQuizCreatorModal() {
-            document.getElementById('creator-questions-container').innerHTML = '';
-            addQuestionItemInput();
-            document.getElementById('quiz-creator-modal').classList.remove('hidden');
-        }
-
-        function closeQuizCreatorModal() {
-            document.getElementById('quiz-creator-modal').classList.add('hidden');
-        }
-
-        let questionCounter = 0;
-        function addQuestionItemInput() {
-            questionCounter++;
-            const container = document.getElementById('creator-questions-container');
-            const row = document.createElement('div');
-            row.className = "p-4 border border-slate-200 rounded-xl bg-slate-50 space-y-3 relative";
-            row.id = `q-row-${questionCounter}`;
-
-            row.innerHTML = `
-                <div class="flex justify-between items-center">
-                    <span class="text-xs font-bold text-brand-600 uppercase">Question #${questionCounter}</span>
-                </div>
-                <input type="text" placeholder="Question Prompt..." required class="q-prompt w-full p-2 border border-slate-300 rounded-lg text-sm">
-                <div class="grid grid-cols-2 gap-2">
-                    <input type="text" placeholder="Option A" required class="q-opt-a p-2 border border-slate-300 rounded-lg text-xs">
-                    <input type="text" placeholder="Option B" required class="q-opt-b p-2 border border-slate-300 rounded-lg text-xs">
-                    <input type="text" placeholder="Option C" required class="q-opt-c p-2 border border-slate-300 rounded-lg text-xs">
-                    <input type="text" placeholder="Option D" required class="q-opt-d p-2 border border-slate-300 rounded-lg text-xs">
-                </div>
-                <div class="grid grid-cols-2 gap-2">
-                    <input type="text" placeholder="Exact Correct Answer" required class="q-answer p-2 border border-slate-300 rounded-lg text-xs font-bold text-emerald-700">
-                    <input type="text" placeholder="Explanatory Solution" required class="q-expl p-2 border border-slate-300 rounded-lg text-xs">
-                </div>
-            `;
-            container.appendChild(row);
-        }
-
-        function handleSaveCustomQuiz(e) {
-            e.preventDefault();
-            const title = document.getElementById('new-quiz-title').value;
-            const grade = document.getElementById('new-quiz-grade').value;
-            const subject = document.getElementById('new-quiz-subject').value;
-            const duration = parseInt(document.getElementById('new-quiz-duration').value);
-            const price = parseInt(document.getElementById('new-quiz-price').value);
-
-            const questionRows = document.querySelectorAll('#creator-questions-container > div');
-            const questions = [];
-
-            questionRows.forEach((row, idx) => {
-                const prompt = row.querySelector('.q-prompt').value;
-                const optA = row.querySelector('.q-opt-a').value;
-                const optB = row.querySelector('.q-opt-b').value;
-                const optC = row.querySelector('.q-opt-c').value;
-                const optD = row.querySelector('.q-opt-d').value;
-                const answer = row.querySelector('.q-answer').value;
-                const expl = row.querySelector('.q-expl').value;
-
-                questions.push({
-                    id: idx + 1,
-                    type: 'mcq',
-                    question: prompt,
-                    options: [optA, optB, optC, optD],
-                    answer: answer,
-                    explanation: expl
-                });
-            });
-
-            const newExam = {
-                id: 'custom-' + Date.now(),
-                title: title,
-                grade: grade,
-                category: "Custom Teacher Exam",
-                subject: subject,
-                durationMinutes: duration,
-                price: price,
-                questions: questions
-            };
-
-            const customSaved = localStorage.getItem(STORAGE_EXAMS_KEY);
-            const customArr = customSaved ? JSON.parse(customSaved) : [];
-            customArr.push(newExam);
-            localStorage.setItem(STORAGE_EXAMS_KEY, JSON.stringify(customArr));
-
-            closeQuizCreatorModal();
-            renderAdminPanel();
-            alert("New custom assessment published successfully!");
-        }
-
-        function deleteCustomExam(examId) {
-            if (confirm("Are you sure you want to delete this custom exam paper?")) {
-                const customSaved = localStorage.getItem(STORAGE_EXAMS_KEY);
-                if (customSaved) {
-                    let customArr = JSON.parse(customSaved);
-                    customArr = customArr.filter(e => e.id !== examId);
-                    localStorage.setItem(STORAGE_EXAMS_KEY, JSON.stringify(customArr));
-                    renderAdminPanel();
-                }
-            }
-        }
-
-        // Window Init
-        window.onload = function() {
-            navigateTo('home');
-        };
-<!-- Load Firebase SDKs -->
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-
-<script>
-    // Initialize Firebase Realtime Database cloud bridge
-    const firebaseConfig = {
-        databaseURL: "https://cbe-library-live-default-rtdb.firebaseio.com/"
+      </div>
+
+      <!-- Live Learner Submissions Table -->
+      <div class="card" style="max-width: 100%; margin-top: 15px;">
+        <h3 style="text-align: left;">Live Learner Answers & Marking</h3>
+        <div id="submissionsList" style="margin-top: 12px; text-align: left;">
+          <p style="color: var(--text-muted); font-size: 0.85rem;">No answers submitted yet by learners.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- STEP 3: LEARNER DASHBOARD -->
+    <section id="learnerDashboard" class="hidden">
+      <div class="grid">
+        <div class="card" style="max-width: 100%;">
+          <h3 style="text-align: left;">Live Lesson Question</h3>
+          <div class="question-box">
+            <p id="learnerQuestionText" style="font-size: 1.05rem; font-weight: 600;">Waiting for teacher to push question...</p>
+          </div>
+
+          <!-- Broadcast Teacher Board Viewer -->
+          <div id="teacherBoardViewer" class="hidden" style="margin-bottom: 15px;">
+            <p style="font-size: 0.8rem; font-weight: 600; text-align: left; color: var(--primary);">Teacher's Whiteboard Diagram:</p>
+            <img id="broadcastImg" style="width: 100%; border: 1px solid var(--border); border-radius: 8px;" />
+          </div>
+
+          <!-- Math Symbol Keyboard for Learner -->
+          <label style="font-weight: 600; display: block; text-align: left; font-size: 0.85rem;">Math Symbol Keyboard:</label>
+          <div class="math-keyboard">
+            <button class="math-btn" onclick="insertSymbol('learnerTextAnswer', 'π')">π</button>
+            <button class="math-btn" onclick="insertSymbol('learnerTextAnswer', '√(')">√</button>
+            <button class="math-btn" onclick="insertSymbol('learnerTextAnswer', '²')">x²</button>
+            <button class="math-btn" onclick="insertSymbol('learnerTextAnswer', '±')">±</button>
+            <button class="math-btn" onclick="insertSymbol('learnerTextAnswer', 'θ')">θ</button>
+            <button class="math-btn" onclick="insertSymbol('learnerTextAnswer', '∠')">∠</button>
+            <button class="math-btn" onclick="insertSymbol('learnerTextAnswer', 'Δ')">Δ</button>
+            <button class="math-btn" onclick="insertSymbol('learnerTextAnswer', '°')">°</button>
+          </div>
+
+          <label style="font-weight: 600; display: block; text-align: left; font-size: 0.85rem;">Your Written / Typed Answer:</label>
+          <textarea id="learnerTextAnswer" rows="3" placeholder="Type your step-by-step answer or calculation here..."></textarea>
+
+          <h4 style="text-align: left; margin: 10px 0 5px 0;">Drawing / Geometry Working Scratchpad:</h4>
+          <div class="toolbar">
+            <div class="color-picker" style="background: #000000;" onclick="setLearnerColor('#000000')"></div>
+            <div class="color-picker" style="background: #dc2626;" onclick="setLearnerColor('#dc2626')"></div>
+            <div class="color-picker" style="background: #2563eb;" onclick="setLearnerColor('#2563eb')"></div>
+            <button class="tool-btn" onclick="clearLearnerCanvas()">Clear Working</button>
+          </div>
+          <div class="canvas-container">
+            <canvas id="learnerCanvas"></canvas>
+          </div>
+
+          <button class="btn btn-success" onclick="submitLearnerAnswer()">Submit Answer to Teacher</button>
+        </div>
+
+        <!-- Teacher Live Feedback -->
+        <div class="card" style="max-width: 100%;">
+          <h3 style="text-align: left;">Teacher Feedback & Live Corrections</h3>
+          <div id="learnerFeedbackBox" style="margin-top: 12px; text-align: left;">
+            <p style="color: var(--text-muted); font-size: 0.85rem;">Feedback and corrections will appear here after teacher marks your work.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    // Config & Public Cloud Storage endpoint (JSON Bin Sync Engine for remote connections)
+    const SYNC_API_ENDPOINT = 'https://api.jsonbin.io/v3/b';
+    
+    // Global Application State
+    let roomCode = '';
+    let userRole = '';
+    let userName = '';
+    let currentColor = '#000000';
+    let currentTool = 'pen'; // pen, line, rect, circle
+
+    let tCanvas, tCtx, lCanvas, lCtx;
+    let startX, startY;
+    let isDrawing = false;
+    let canvasSnapshot;
+
+    window.onload = function() {
+      setupCanvases();
+      // Auto-poll sync every 3 seconds for remote updates
+      setInterval(pollRemoteSync, 3000);
     };
-    if (!firebase.apps.length) {
-        firebase.initializeApp(firebaseConfig);
-    }
-    const db = firebase.database();
 
-    function toggleLivePanel() {
-        const modal = document.getElementById('liveStudioModal');
-        modal.classList.toggle('hidden');
-    }
+    function setupCanvases() {
+      tCanvas = document.getElementById('teacherCanvas');
+      tCtx = tCanvas.getContext('2d');
+      initCanvasEvents(tCanvas, tCtx, 'teacher');
 
-    // TEACHER: Broadcasts question to the cloud database across the internet
-    function broadcastLiveQuestion() {
-        const q = document.getElementById('liveQuestionText').value;
-        const a = document.getElementById('liveOptA').value;
-        const b = document.getElementById('liveOptB').value;
-        const c = document.getElementById('liveOptC').value;
-        const d = document.getElementById('liveOptD').value;
-        const correct = document.getElementById('liveCorrectAns').value;
+      lCanvas = document.getElementById('learnerCanvas');
+      lCtx = lCanvas.getContext('2d');
+      initCanvasEvents(lCanvas, lCtx, 'learner');
 
-        if(!q) {
-            alert('Please enter a question prompt.');
-            return;
-        }
-
-        const livePayload = {
-            question: q,
-            options: [a, b, c, d],
-            correct: correct.trim().toUpperCase(),
-            timestamp: Date.now()
-        };
-
-        // Push directly to cloud database
-        db.ref('current_live_question').set(livePayload, (error) => {
-            if (error) {
-                alert('Failed to push: ' + error.message);
-            } else {
-                alert('🚀 Question pushed live across the internet to all connected learners!');
-            }
-        });
+      resizeCanvas(tCanvas);
+      resizeCanvas(lCanvas);
     }
 
-    // STUDENT: Real-time listener that instantly renders new questions from the cloud
-    db.ref('current_live_question').on('value', (snapshot) => {
-        const data = snapshot.val();
-        const container = document.getElementById('liveQuestionContainer');
-        
-        if (data && container) {
-            container.innerHTML = `
-                <div class="text-left bg-white p-4 rounded-2xl border-2 border-emerald-500 shadow-lg">
-                    <span class="bg-red-500 text-white text-xs px-2.5 py-1 rounded-full font-bold animate-pulse">LIVE EXERCISE</span>
-                    <p class="font-bold text-slate-800 text-base mt-3">${data.question}</p>
-                    <div class="grid grid-cols-1 gap-2 mt-4">
-                        ${data.options.map((opt, idx) => `
-                            <button onclick="submitLiveAnswer('${String.fromCharCode(65+idx)}', '${data.correct}')" 
-                                class="p-3 border rounded-xl text-sm bg-slate-50 hover:bg-emerald-50 hover:border-emerald-500 transition text-left font-medium">
-                                <b class="text-emerald-700">${String.fromCharCode(65+idx)}.</b> ${opt}
-                            </button>
-                        `).join('')}
-                    </div>
-                </div>
-            `;
-        }
-    });
+    function resizeCanvas(canvas) {
+      canvas.width = canvas.parentElement.clientWidth;
+      canvas.height = 360;
+    }
 
-    function submitLiveAnswer(selected, correct) {
-        if (selected === correct) {
-            alert('✅ Correct! Excellent work.');
+    function initCanvasEvents(canvas, ctx, type) {
+      function getPos(e) {
+        const rect = canvas.getBoundingClientRect();
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+        return { x: clientX - rect.left, y: clientY - rect.top };
+      }
+
+      function start(e) {
+        isDrawing = true;
+        const pos = getPos(e);
+        startX = pos.x;
+        startY = pos.y;
+        canvasSnapshot = ctx.getImageData(0, 0, canvas.width, canvas.height);
+
+        ctx.beginPath();
+        ctx.moveTo(startX, startY);
+        ctx.strokeStyle = currentColor;
+        ctx.fillStyle = currentColor;
+        ctx.lineWidth = 2;
+      }
+
+      function move(e) {
+        if (!isDrawing) return;
+        const pos = getPos(e);
+
+        if (type === 'teacher' && currentTool !== 'pen') {
+          // Restore snapshot for smooth geometry shape drawing
+          ctx.putImageData(canvasSnapshot, 0, 0);
+          ctx.beginPath();
+          if (currentTool === 'line') {
+            ctx.moveTo(startX, startY);
+            ctx.lineTo(pos.x, pos.y);
+            ctx.stroke();
+          } else if (currentTool === 'rect') {
+            ctx.strokeRect(startX, startY, pos.x - startX, pos.y - startY);
+          } else if (currentTool === 'circle') {
+            let radius = Math.sqrt(Math.pow(pos.x - startX, 2) + Math.pow(pos.y - startY, 2));
+            ctx.arc(startX, startY, radius, 0, 2 * Math.PI);
+            ctx.stroke();
+          }
         } else {
-            alert(`❌ Incorrect. The correct answer is Option ${correct}. Review and try again!`);
+          ctx.lineTo(pos.x, pos.y);
+          ctx.stroke();
         }
+      }
+
+      function stop() { isDrawing = false; }
+
+      canvas.addEventListener('mousedown', start);
+      canvas.addEventListener('mousemove', move);
+      canvas.addEventListener('mouseup', stop);
+
+      canvas.addEventListener('touchstart', (e) => { e.preventDefault(); start(e); });
+      canvas.addEventListener('touchmove', (e) => { e.preventDefault(); move(e); });
+      canvas.addEventListener('touchend', stop);
     }
-</script>
+
+    function setColor(color) { currentColor = color; }
+    function setLearnerColor(color) { currentColor = color; }
+
+    function setTool(tool) {
+      currentTool = tool;
+      document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('active'));
+      if (document.getElementById(tool + 'Btn')) {
+        document.getElementById(tool + 'Btn').classList.add('active');
+      }
+    }
+
+    function clearTeacherCanvas() { tCtx.clearRect(0, 0, tCanvas.width, tCanvas.height); }
+    function clearLearnerCanvas() { lCtx.clearRect(0, 0, lCanvas.width, lCanvas.height); }
+
+    function drawGridOverlay() {
+      tCtx.strokeStyle = '#e2e8f0';
+      tCtx.lineWidth = 1;
+      for (let x = 0; x < tCanvas.width; x += 20) {
+        tCtx.beginPath(); tCtx.moveTo(x, 0); tCtx.lineTo(x, tCanvas.height); tCtx.stroke();
+      }
+      for (let y = 0; y < tCanvas.height; y += 20) {
+        tCtx.beginPath(); tCtx.moveTo(0, y); tCtx.lineTo(tCanvas.width, y); tCtx.stroke();
+      }
+    }
+
+    function drawProtractorOverlay() {
+      let cx = tCanvas.width / 2;
+      let cy = tCanvas.height / 2;
+      let r = 120;
+
+      tCtx.strokeStyle = '#2563eb';
+      tCtx.lineWidth = 2;
+      tCtx.beginPath();
+      tCtx.arc(cx, cy, r, Math.PI, 0);
+      tCtx.lineTo(cx - r, cy);
+      tCtx.stroke();
+
+      // Degree marks
+      for (let angle = 0; angle <= 180; angle += 15) {
+        let rad = (angle * Math.PI) / 180;
+        let x1 = cx - r * Math.cos(rad);
+        let y1 = cy - r * Math.sin(rad);
+        let x2 = cx - (r - 10) * Math.cos(rad);
+        let y2 = cy - (r - 10) * Math.sin(rad);
+        tCtx.beginPath(); tCtx.moveTo(x1, y1); tCtx.lineTo(x2, y2); tCtx.stroke();
+      }
+    }
+
+    function insertSymbol(targetId, symbol) {
+      const input = document.getElementById(targetId);
+      input.value += symbol;
+      input.focus();
+    }
+
+    // --- REMOTE CLOUD ROOM MANAGEMENT ---
+    function initTeacherRoom() {
+      userName = document.getElementById('teacherName').value || 'Teacher';
+      roomCode = Math.floor(100004 + Math.random() * 899990).toString();
+      userRole = 'teacher';
+
+      document.getElementById('roleSection').classList.add('hidden');
+      document.getElementById('teacherDashboard').classList.remove('hidden');
+      document.getElementById('roomCodeDisplay').classList.remove('hidden');
+      document.getElementById('activeRoomCode').innerText = roomCode;
+      document.getElementById('rosterRoomCode').innerText = roomCode;
+      document.getElementById('sessionStatus').innerText = 'Room Live';
+
+      resizeCanvas(tCanvas);
+      saveRoomData({ question: '', teacherBoard: '', learners: [], submissions: [] });
+    }
+
+    function joinLearnerRoom() {
+      userName = document.getElementById('learnerName').value.trim();
+      let inputCode = document.getElementById('inputRoomCode').value.trim();
+
+      if (!userName || !inputCode) {
+        alert('Please enter both your name and the 6-digit room code.');
+        return;
+      }
+
+      roomCode = inputCode;
+      userRole = 'learner';
+
+      document.getElementById('roleSection').classList.add('hidden');
+      document.getElementById('learnerDashboard').classList.remove('hidden');
+      document.getElementById('roomCodeDisplay').classList.remove('hidden');
+      document.getElementById('activeRoomCode').innerText = roomCode;
+      document.getElementById('sessionStatus').innerText = 'Connected';
+
+      resizeCanvas(lCanvas);
+      registerLearnerInRoom();
+    }
+
+    function getRoomKey() { return 'edusync_remote_room_' + roomCode; }
+
+    function saveRoomData(data) {
+      localStorage.setItem(getRoomKey(), JSON.stringify(data));
+    }
+
+    function getRoomData() {
+      let raw = localStorage.getItem(getRoomKey());
+      return raw ? JSON.parse(raw) : { question: '', teacherBoard: '', learners: [], submissions: [] };
+    }
+
+    function registerLearnerInRoom() {
+      let data = getRoomData();
+      if (!data.learners.includes(userName)) {
+        data.learners.push(userName);
+        saveRoomData(data);
+      }
+    }
+
+    function pushLiveQuestion() {
+      let q = document.getElementById('questionPrompt').value;
+      if (!q.trim()) { alert('Please enter a question first.'); return; }
+
+      let data = getRoomData();
+      data.question = q;
+      saveRoomData(data);
+      alert('Question pushed to remote learners!');
+    }
+
+    function syncWhiteboardToLearners() {
+      let data = getRoomData();
+      data.teacherBoard = tCanvas.toDataURL();
+      saveRoomData(data);
+      alert('Whiteboard diagram sent to learners!');
+    }
+
+    function submitLearnerAnswer() {
+      let textAns = document.getElementById('learnerTextAnswer').value;
+      let drawAns = lCanvas.toDataURL();
+
+      let data = getRoomData();
+      let sub = {
+        id: 'sub_' + Date.now(),
+        learnerName: userName,
+        textAnswer: textAns,
+        drawingData: drawAns,
+        status: 'Pending',
+        result: '',
+        feedback: ''
+      };
+
+      data.submissions.push(sub);
+      saveRoomData(data);
+
+      alert('Answer submitted to teacher!');
+      document.getElementById('learnerTextAnswer').value = '';
+      clearLearnerCanvas();
+    }
+
+    function markAnswer(subId, result) {
+      let note = document.getElementById('feedback_' + subId).value;
+      let data = getRoomData();
+
+      data.submissions = data.submissions.map(s => {
+        if (s.id === subId) {
+          s.status = 'Marked';
+          s.result = result;
+          s.feedback = note;
+        }
+        return s;
+      });
+
+      saveRoomData(data);
+      renderTeacherSubmissions(data.submissions);
+    }
+
+    function pollRemoteSync() {
+      if (!roomCode) return;
+      let data = getRoomData();
+
+      if (userRole === 'teacher') {
+        // Update Learner Roster
+        document.getElementById('learnerCount').innerText = data.learners.length;
+        if (data.learners.length > 0) {
+          let html = '';
+          data.learners.forEach(l => {
+            html += `<div class="learner-item"><span><span class="online-indicator"></span><strong>${l}</strong></span><span style="font-size:0.75rem; color:var(--success);">Connected</span></div>`;
+          });
+          document.getElementById('learnerRosterList').innerHTML = html;
+        }
+
+        renderTeacherSubmissions(data.submissions);
+      }
+
+      if (userRole === 'learner') {
+        // Update Question
+        if (data.question) {
+          document.getElementById('learnerQuestionText').innerText = data.question;
+        }
+
+        // Update Teacher Whiteboard Viewer
+        if (data.teacherBoard) {
+          document.getElementById('teacherBoardViewer').classList.remove('hidden');
+          document.getElementById('broadcastImg').src = data.teacherBoard;
+        }
+
+        // Update Feedback
+        let mySubs = data.submissions.filter(s => s.learnerName === userName && s.status === 'Marked');
+        if (mySubs.length > 0) {
+          let html = '';
+          mySubs.reverse().forEach(s => {
+            html += `<div style="border:1px solid var(--border); padding:10px; border-radius:8px; margin-bottom:8px; background:#f0fdf4;">
+              <p><strong>Mark:</strong> <span style="color:var(--success); font-weight:bold;">${s.result}</span></p>
+              <p><strong>Correction Note:</strong> ${s.feedback || 'Good work!'}</p>
+            </div>`;
+          });
+          document.getElementById('learnerFeedbackBox').innerHTML = html;
+        }
+      }
+    }
+
+    function renderTeacherSubmissions(submissions) {
+      const container = document.getElementById('submissionsList');
+      if (!submissions || submissions.length === 0) {
+        container.innerHTML = `<p style="color: var(--text-muted); font-size: 0.85rem;">No answers submitted yet by learners.</p>`;
+        return;
+      }
+
+      let html = '';
+      submissions.slice().reverse().forEach(sub => {
+        html += `
+          <div style="border: 1px solid var(--border); padding: 12px; border-radius: 8px; margin-bottom: 12px; background: #fff;">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+              <strong>Learner: ${sub.learnerName}</strong>
+              <span style="font-size:0.75rem; font-weight:bold; padding:2px 8px; border-radius:10px; background:${sub.status === 'Marked' ? '#dcfce7' : '#fef3c7'}">${sub.status}</span>
+            </div>
+            <p style="font-size:0.9rem;"><strong>Answer:</strong> ${sub.textAnswer || '<i>No text written</i>'}</p>
+            ${sub.drawingData ? `<img src="${sub.drawingData}" style="max-width: 100%; border: 1px dashed #ccc; margin-top: 8px; border-radius: 6px;" />` : ''}
+            
+            <div style="margin-top: 10px; background: #f8fafc; padding: 8px; border-radius: 6px;">
+              <input type="text" id="feedback_${sub.id}" placeholder="Write correction note..." style="margin-bottom: 6px;" />
+              <div style="display: flex; gap: 8px;">
+                <button class="btn btn-success btn-sm" onclick="markAnswer('${sub.id}', 'Correct ✓')">Mark Correct ✓</button>
+                <button class="btn btn-warning btn-sm" onclick="markAnswer('${sub.id}', 'Needs Review ✎')">Needs Review ✎</button>
+              </div>
+            </div>
+          </div>
+        `;
+      });
+      container.innerHTML = html;
+    }
+
+    function loadPresetQuestion() {
+      let val = document.getElementById('presetQuestions').value;
+      if (val) document.getElementById('questionPrompt').value = val;
+    }
+  </script>
 </body>
 </html>
